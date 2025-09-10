@@ -6,7 +6,7 @@ Custom ComfyUI node for integrating Claude API with image and text capabilities.
 
 - Text-based chat with Claude models
 - Optional image input support
-- Configurable model selection (Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku)
+- Configurable model selection (Claude Opus 4.1, Claude Sonnet 4, Claude 3.5 Sonnet, Claude 3.5 Haiku)
 - Adjustable parameters (temperature, max tokens, system prompt)
 
 ## Installation
@@ -40,7 +40,7 @@ Set your Anthropic API key using one of these methods:
 ## Node Parameters
 
 - **prompt**: Text input for Claude
-- **model**: Choose between Claude 3.5 Sonnet, Claude 3 Opus, or Claude 3 Haiku
+- **model**: Choose between Claude Opus 4.1, Claude Sonnet 4, Claude 3.5 Sonnet, or Claude 3.5 Haiku
 - **temperature**: Control response randomness (0.0 - 1.0)
 - **max_tokens**: Maximum response length
 - **system_prompt**: Optional system message to guide Claude's behavior
