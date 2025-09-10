@@ -19,7 +19,7 @@ Custom ComfyUI node for integrating Claude API with image and text capabilities.
 ### Option 2: Git Clone
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/YOUR_USERNAME/razv-llm.git
+git clone https://github.com/razvanmatei-sf/razv-llm.git
 cd razv-llm
 pip install -r requirements.txt
 ```
