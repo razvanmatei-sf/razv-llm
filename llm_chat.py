@@ -66,8 +66,12 @@ def pil2base64(image: Image.Image):
 
 
 def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, image: Optional[Tensor],
-                    max_tokens: int, temperature: float, endpoint: str = "https://api.anthropic.com"):
-    """Single function to call Claude API with text and optional image"""
+                    max_tokens: int, temperature: float, seed: int = -1, endpoint: str = "https://api.anthropic.com"):
+    """Single function to call Claude API with text and optional image
+
+    Note: Claude API does not natively support seed parameter for reproducible outputs.
+    The seed parameter is included for UI consistency but does not affect Claude's output.
+    """
 
     # Build message content
     content = []
@@ -141,8 +145,11 @@ def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, i
 
 
 def call_gemini_api(api_key: str, model: str, prompt: str, system_prompt: str, image: Optional[Tensor],
-                    max_tokens: int, temperature: float):
-    """Single function to call Gemini API with text and optional image"""
+                    max_tokens: int, temperature: float, seed: int = -1):
+    """Single function to call Gemini API with text and optional image
+
+    Supports seed parameter for reproducible outputs when seed != -1.
+    """
 
     # Build contents array
     contents = []
@@ -181,12 +188,18 @@ def call_gemini_api(api_key: str, model: str, prompt: str, system_prompt: str, i
 
     # Build request
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    generation_config = {
+        "maxOutputTokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    # Add seed if specified (not -1)
+    if seed != -1:
+        generation_config["seed"] = seed
+
     data = {
         "contents": contents,
-        "generationConfig": {
-            "maxOutputTokens": max_tokens,
-            "temperature": temperature,
-        }
+        "generationConfig": generation_config
     }
 
     # Add system instruction if provided
@@ -237,6 +250,13 @@ class RazvLLMChat:
                 "prompt": ("STRING", {"multiline": True}),
                 "max_tokens": ("INT", {"default": 4096, "min": 1, "max": 200000}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0, "max": 2.0, "step": 0.01}),
+                "seed": ("INT", {
+                    "default": -1,
+                    "min": -1,
+                    "max": 0xffffffffffffffff,
+                    "control_after_generate": True,
+                    "tooltip": "Random seed for reproducible results. -1 for random seed. Note: Only works with Gemini models, Claude doesn't support seeds."
+                }),
             },
             "optional": {
                 "system_prompt": ("STRING", {"multiline": True, "default": "You are a helpful AI assistant."}),
@@ -249,7 +269,7 @@ class RazvLLMChat:
     FUNCTION = "chat"
     CATEGORY = "Razv LLM"
 
-    def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float,
+    def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float, seed: int,
              system_prompt: str = "You are a helpful AI assistant.", image: Optional[Tensor] = None):
 
         # Check for API key in environment if not provided
@@ -274,7 +294,8 @@ class RazvLLMChat:
                 system_prompt=system_prompt,
                 image=image,
                 max_tokens=max_tokens,
-                temperature=temperature
+                temperature=temperature,
+                seed=seed
             )
         else:
             response = call_claude_api(
@@ -284,7 +305,8 @@ class RazvLLMChat:
                 system_prompt=system_prompt,
                 image=image,
                 max_tokens=max_tokens,
-                temperature=temperature
+                temperature=temperature,
+                seed=seed
             )
 
         return (response,)
