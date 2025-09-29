@@ -277,16 +277,26 @@ class RazvLLMChat:
     FUNCTION = "chat"
     CATEGORY = "Razv LLM"
 
-    def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float, seed: int,
-             system_prompt: str = "You are a helpful AI assistant.", **kwargs):
+    def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float, seed: int, **kwargs):
+
+        # Extract system_prompt from kwargs (it's now in optional/ContainsAnyDict)
+        system_prompt = kwargs.get("system_prompt", "You are a helpful AI assistant.")
 
         # Collect all images from both the original image parameter and dynamic inputs
         images = []
 
         # Check for images in kwargs (including the original "image" parameter and dynamic inputs)
         for key, value in kwargs.items():
-            if key == "image" or key.startswith("image") or (hasattr(value, 'shape') and len(value.shape) >= 3):
-                # This is likely an image tensor
+            # Skip system_prompt which is now in kwargs
+            if key == "system_prompt":
+                continue
+
+            # Look for image-related keys and tensors
+            if key == "image" or key.startswith("image"):
+                if value is not None:
+                    images.append(value)
+            elif hasattr(value, 'shape') and len(value.shape) >= 3:
+                # This is likely an image tensor from a dynamic input
                 if value is not None:
                     images.append(value)
 
