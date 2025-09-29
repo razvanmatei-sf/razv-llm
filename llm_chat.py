@@ -259,7 +259,7 @@ class RazvLLMChat:
                 }),
             },
             "optional": {
-                "system_prompt": ("STRING", {"multiline": True, "default": "You are a helpful AI assistant."}),
+                "system_prompt": ("STRING", {"multiline": True, "default": ""}),
                 "image": ("IMAGE",),
             }
         }
@@ -270,7 +270,7 @@ class RazvLLMChat:
     CATEGORY = "Razv LLM"
 
     def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float, seed: int,
-             system_prompt: str = "You are a helpful AI assistant.", image: Optional[Tensor] = None):
+             system_prompt: str = "", image: Optional[Tensor] = None):
 
         # Check for API key in environment if not provided
         if not api_key or api_key.strip() == "":
