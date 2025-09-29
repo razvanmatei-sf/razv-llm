@@ -27,25 +27,21 @@ app.registerExtension({
 
         // Override onConnectionsChange to handle dynamic input creation
         nodeType.prototype.onConnectionsChange = function(type, slot, isConnected, link_info, output_slot) {
-            // First call the original method
             const result = onConnectionsChange?.apply(this, arguments);
 
-            // Only handle our specific node type and input connections for image slots
-            if (this.comfyClass === "RazvLLMChat" && type === 1) { // 1 = input, 0 = output
+            // Only handle input connections for image slots
+            if (type === 1) { // 1 = input, 0 = output
                 const input = this.inputs[slot];
 
                 // Check if this is an image input
                 if (input && input.type === "IMAGE") {
-                    // Use setTimeout to avoid interfering with other nodes during the same event cycle
-                    setTimeout(() => {
-                        if (isConnected) {
-                            // When an image is connected, ensure we have enough slots
-                            this.updateImageInputs();
-                        } else {
-                            // When disconnected, clean up unused slots (but keep at least one)
-                            this.cleanupImageInputs();
-                        }
-                    }, 1);
+                    if (isConnected) {
+                        // When an image is connected, ensure we have enough slots
+                        this.updateImageInputs();
+                    } else {
+                        // When disconnected, clean up unused slots (but keep at least one)
+                        this.cleanupImageInputs();
+                    }
                 }
             }
 
