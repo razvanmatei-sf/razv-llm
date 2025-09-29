@@ -4,15 +4,9 @@ import requests
 import io
 import base64
 from torch import Tensor
-from typing import Optional, List
+from typing import Optional
 from PIL import Image
 import numpy as np
-
-
-class ContainsAnyDict(dict):
-    """Dictionary that always returns True for 'in' operations, enabling dynamic inputs in ComfyUI"""
-    def __contains__(self, key):
-        return True
 
 
 # Latest Claude models (as of 2025)
@@ -71,9 +65,9 @@ def pil2base64(image: Image.Image):
     return img_str
 
 
-def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, images: Optional[List[Tensor]],
+def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, image: Optional[Tensor],
                     max_tokens: int, temperature: float, seed: int = -1, endpoint: str = "https://api.anthropic.com"):
-    """Single function to call Claude API with text and optional images
+    """Single function to call Claude API with text and optional image
 
     Note: Claude API does not natively support seed parameter for reproducible outputs.
     The seed parameter is included for UI consistency but does not affect Claude's output.
@@ -82,23 +76,22 @@ def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, i
     # Build message content
     content = []
 
-    # Add images if provided
-    if images is not None and len(images) > 0:
-        for image in images:
-            if len(image.shape) == 4:  # Batch of images - just use first one
-                pil_image = tensor2pil(image[0])
-            else:
-                pil_image = tensor2pil(image)
+    # Add image if provided
+    if image is not None:
+        if len(image.shape) == 4:  # Batch of images - just use first one
+            pil_image = tensor2pil(image[0])
+        else:
+            pil_image = tensor2pil(image)
 
-            image_base64 = pil2base64(pil_image)
-            content.append({
-                "type": "image",
-                "source": {
-                    "type": "base64",
-                    "media_type": "image/png",
-                    "data": image_base64
-                }
-            })
+        image_base64 = pil2base64(pil_image)
+        content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/png",
+                "data": image_base64
+            }
+        })
 
     # Add text
     content.append({
@@ -151,9 +144,9 @@ def call_claude_api(api_key: str, model: str, prompt: str, system_prompt: str, i
     return response_data["content"][0]["text"]
 
 
-def call_gemini_api(api_key: str, model: str, prompt: str, system_prompt: str, images: Optional[List[Tensor]],
+def call_gemini_api(api_key: str, model: str, prompt: str, system_prompt: str, image: Optional[Tensor],
                     max_tokens: int, temperature: float, seed: int = -1):
-    """Single function to call Gemini API with text and optional images
+    """Single function to call Gemini API with text and optional image
 
     Supports seed parameter for reproducible outputs when seed != -1.
     """
@@ -169,21 +162,20 @@ def call_gemini_api(api_key: str, model: str, prompt: str, system_prompt: str, i
     # Build content parts
     parts = []
 
-    # Add images if provided
-    if images is not None and len(images) > 0:
-        for image in images:
-            if len(image.shape) == 4:  # Batch of images - just use first one
-                pil_image = tensor2pil(image[0])
-            else:
-                pil_image = tensor2pil(image)
+    # Add image if provided
+    if image is not None:
+        if len(image.shape) == 4:  # Batch of images - just use first one
+            pil_image = tensor2pil(image[0])
+        else:
+            pil_image = tensor2pil(image)
 
-            image_base64 = pil2base64(pil_image)
-            parts.append({
-                "inline_data": {
-                    "mime_type": "image/png",
-                    "data": image_base64
-                }
-            })
+        image_base64 = pil2base64(pil_image)
+        parts.append({
+            "inline_data": {
+                "mime_type": "image/png",
+                "data": image_base64
+            }
+        })
 
     # Add text
     parts.append({
@@ -266,10 +258,10 @@ class RazvLLMChat:
                     "tooltip": "Random seed for reproducible results. -1 for random seed. Note: Only works with Gemini models, Claude doesn't support seeds."
                 }),
             },
-            "optional": ContainsAnyDict({
+            "optional": {
                 "system_prompt": ("STRING", {"multiline": True, "default": "You are a helpful AI assistant."}),
                 "image": ("IMAGE",),
-            })
+            }
         }
 
     RETURN_TYPES = ("STRING",)
@@ -278,20 +270,7 @@ class RazvLLMChat:
     CATEGORY = "Razv LLM"
 
     def chat(self, api_key: str, model: str, prompt: str, max_tokens: int, temperature: float, seed: int,
-             system_prompt: str = "You are a helpful AI assistant.", **kwargs):
-
-        # Collect all images from both the original image parameter and dynamic inputs
-        images = []
-
-        # Check for images in kwargs (including the original "image" parameter and dynamic inputs)
-        for key, value in kwargs.items():
-            if key == "image" or key.startswith("image") or (hasattr(value, 'shape') and len(value.shape) >= 3):
-                # This is likely an image tensor
-                if value is not None:
-                    images.append(value)
-
-        # Convert to list or None for API functions
-        images_list = images if len(images) > 0 else None
+             system_prompt: str = "You are a helpful AI assistant.", image: Optional[Tensor] = None):
 
         # Check for API key in environment if not provided
         if not api_key or api_key.strip() == "":
@@ -313,7 +292,7 @@ class RazvLLMChat:
                 model=model,
                 prompt=prompt,
                 system_prompt=system_prompt,
-                images=images_list,
+                image=image,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 seed=seed
@@ -324,7 +303,7 @@ class RazvLLMChat:
                 model=model,
                 prompt=prompt,
                 system_prompt=system_prompt,
-                images=images_list,
+                image=image,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 seed=seed
