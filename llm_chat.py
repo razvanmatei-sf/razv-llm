@@ -11,12 +11,8 @@ import numpy as np
 
 # Latest Claude models (as of 2025)
 claude_models = [
+    "claude-sonnet-4-5-20250929",  # Claude Sonnet 4.5 - Latest Sonnet
     "claude-opus-4-1-20250805",  # Claude Opus 4.1 - Most capable model
-    "claude-opus-4-1",  # Alias for Opus 4.1
-    "claude-sonnet-4-20250514",  # Claude Sonnet 4 - Latest Sonnet
-    "claude-sonnet-4-0",  # Alias for Sonnet 4
-    "claude-3-5-sonnet-20241022",  # Sonnet 3.5
-    "claude-3-5-haiku-20241022",  # Haiku 3.5
 ]
 
 # Google Gemini models (as of 2025)
@@ -246,7 +242,7 @@ class RazvLLMChat:
         return {
             "required": {
                 "api_key": ("STRING", {"multiline": False}),
-                "model": (all_models, {"default": "claude-opus-4-1-20250805"}),
+                "model": (all_models, {"default": "claude-sonnet-4-5-20250929"}),
                 "prompt": ("STRING", {"multiline": True}),
                 "max_tokens": ("INT", {"default": 4096, "min": 1, "max": 200000}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0, "max": 2.0, "step": 0.01}),
@@ -318,5 +314,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "RazvLLMChat": "Razv LLM Chat (Claude & Gemini)",
+    "RazvLLMChat": "Razv LLM Chat",
 }
