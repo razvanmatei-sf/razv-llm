@@ -242,15 +242,15 @@ class RazvLLMChat:
         return {
             "required": {
                 "api_key": ("STRING", {"multiline": False}),
-                "model": (all_models, {"default": "claude-sonnet-4-5-20250929"}),
+                "model": (all_models, {"default": "claude-opus-4-1-20250805"}),
                 "prompt": ("STRING", {"multiline": True}),
                 "max_tokens": ("INT", {"default": 4096, "min": 1, "max": 200000}),
                 "temperature": ("FLOAT", {"default": 0.7, "min": 0, "max": 2.0, "step": 0.01}),
                 "seed": ("INT", {
-                    "default": -1,
+                    "default": 1,
                     "min": -1,
                     "max": 0xffffffffffffffff,
-                    "control_after_generate": True,
+                    "control_after_generate": False,
                     "tooltip": "Random seed for reproducible results. -1 for random seed. Note: Only works with Gemini models, Claude doesn't support seeds."
                 }),
             },
